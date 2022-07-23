@@ -67,11 +67,11 @@ router.post(
   function (req, res, next) {
     // console.log(req)
     console.log("file11 => ", req.files);
-    const {filename} = req.files[0];
+    const { filename } = req.files[0];
     if (req.files) {
       res.status(200).json({
         message: "Success to upload.",
-        uuid: filename.split(".")[0]
+        uuid: filename.split(".")[0],
       });
     } else {
       res.status(400).json({ message: "Upload image only." });
@@ -113,8 +113,12 @@ router.post(
   uploadCardImage.array("uploadedCardImages", 10),
   function (req, res, next) {
     console.log(req.file);
+    const { filename } = req.files[0];
     if (req.files) {
-      res.status(200).json({ message: "Success to upload." });
+      res.status(200).json({
+        message: "Success to upload.",
+        uuid: filename.split(".")[0],
+      });
     } else {
       res.status(400).json({ message: "Upload image only." });
     }
@@ -185,7 +189,7 @@ router.get("/api/video/:getvideo", (req, res) => {
   res.sendFile(path.resolve(`./uploads/${filename}`));
 });
 
-router.post("/api/video/startProgram", requiredLogin, async (req, res) => {
+router.post("/api/video/startProgram", async (req, res) => {
   console.log("RES => ", req.body.video_file);
   if (!req.body.video_file || !req.body._id) {
     return res.status(422).json({ message: "require video_file" });
@@ -221,9 +225,10 @@ router.post("/api/video/startProgramImage", async (req, res) => {
   Status.findOneAndUpdate(id, status)
     .then((result) => {
       console.log("startProgram => ", result);
+      console.log("idjson => ", uuid);
       const data = {
         message: "start program",
-        uuid: uuid
+        uuid: uuid,
       };
       client.publish("start_Program_Detection_Image", JSON.stringify(data));
       res.json({ message: "OK starting process detection (true)." });
@@ -244,8 +249,8 @@ router.post("/api/video/startProgramCardImage", async (req, res) => {
       console.log("startProgram => ", result);
       const data = {
         message: "start program card",
-        uuid: uuid
-     };
+        uuid: uuid,
+      };
       client.publish(
         "start_Program_Card_Detection_Image",
         JSON.stringify(data)

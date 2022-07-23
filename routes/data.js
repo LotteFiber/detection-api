@@ -182,6 +182,8 @@ router.get("/api/data/image/:getdata", (req, res) => {
 router.get("/api/data/uploadbyweb/:getdata", (req, res) => {
   var filename = req.params.getdata;
   var str = filename.replace(/-/g, "/");
+  console.log("filename ", filename);
+  console.log("str ", str);
   res.sendFile(path.resolve(`./${str}`));
 });
 
@@ -408,9 +410,9 @@ router.post("/api/insertdatabyweb", upload.single("image"), (req, res) => {
     });
 });
 
-router.post("/api/insertdatabyapp", upload.single("image"), (req, res) => {
-  console.log("req by app=> ", req.body);
-  const { top, province, bottom, charge, image } = req.body;
+router.post("/api/insertdatabyapp", (req, res) => {
+  console.log("req => ", req.body);
+  const { top, province, bottom, charge } = req.body;
   if (!top || !province || !bottom) {
     return res.status(422).json({ error: "กรุณากรอกให้ครบ" });
   }
@@ -431,17 +433,6 @@ router.post("/api/insertdatabyapp", upload.single("image"), (req, res) => {
         student_id = result.student_id;
       }
       const data = new Data({
-        // first_name,
-        // last_name,
-        // faculty,
-        // student_id,
-        // licensepartone: top,
-        // licenseparttwo: province,
-        // licensepartthree: bottom,
-        // charge,
-        // date_data: Date.now(),
-        // upload_by: "app",
-        // accuracy: "1.0",
         first_name,
         last_name,
         faculty,
@@ -451,10 +442,8 @@ router.post("/api/insertdatabyapp", upload.single("image"), (req, res) => {
         licensepartthree: bottom,
         charge,
         date_data: Date.now(),
-        path_image: image,
         upload_by: "app",
         accuracy: "1.0",
-        verify_status: false,
       });
       console.log("data => ", data);
       data
