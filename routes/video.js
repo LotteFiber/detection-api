@@ -61,6 +61,7 @@ var uploadImage = multer({
   storage: storageImage,
   fileFilter: fileFilterImage,
 });
+
 router.post(
   "/api/upload-file-image",
   uploadImage.array("uploadedImages", 10),
@@ -72,6 +73,38 @@ router.post(
       res.status(200).json({
         message: "Success to upload.",
         uuid: filename.split(".")[0],
+      });
+    } else {
+      res.status(400).json({ message: "Upload image only." });
+    }
+  }
+);
+
+var storageImagePlate = multer.diskStorage({
+  destination: function (req, file, callback) {
+    callback(null, "./Images/");
+  },
+  filename: function (req, file, callback) {
+    callback(null, "person_" + Date.now() + path.extname(file.originalname));
+  },
+});
+
+var uploadImagePlate = multer({
+  storage: storageImagePlate,
+  fileFilter: fileFilterImage,
+});
+
+router.post(
+  "/api/upload-image-plate",
+  uploadImagePlate.array("uploadedImages", 10),
+  function (req, res, next) {
+    // console.log(req)
+    console.log("file11 => ", req.body.image);
+    // const { filename } = req.files[0];
+    if (req.files) {
+      res.status(200).json({
+        message: "Success to upload.",
+        // uuid: filename.split(".")[0],
       });
     } else {
       res.status(400).json({ message: "Upload image only." });

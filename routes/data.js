@@ -184,7 +184,15 @@ router.get("/api/data/uploadbyweb/:getdata", (req, res) => {
   var str = filename.replace(/-/g, "/");
   console.log("filename ", filename);
   console.log("str ", str);
-  res.sendFile(path.resolve(`./${str}`));
+  res.sendFile(path.resolve(`./Images/${str}`));
+});
+
+router.get("/api/data/uploadbyapp/:getdata", (req, res) => {
+  var filename = req.params.getdata;
+  var str = filename.replace(/-/g, "/");
+  console.log("filename ", filename);
+  console.log("str ", str);
+  res.sendFile(path.resolve(`./Images/${str}`));
 });
 
 router.post("/api/insertdatabyvideo/", (req, res) => {
@@ -410,9 +418,9 @@ router.post("/api/insertdatabyweb", upload.single("image"), (req, res) => {
     });
 });
 
-router.post("/api/insertdatabyapp", (req, res) => {
+router.post("/api/insertdatabyapp", upload.single("image"), (req, res) => {
   console.log("req => ", req.body);
-  const { top, province, bottom, charge } = req.body;
+  const { top, province, bottom, charge, image } = req.body;
   if (!top || !province || !bottom) {
     return res.status(422).json({ error: "กรุณากรอกให้ครบ" });
   }
@@ -441,6 +449,7 @@ router.post("/api/insertdatabyapp", (req, res) => {
         licenseparttwo: province,
         licensepartthree: bottom,
         charge,
+        path_image: image,
         date_data: Date.now(),
         upload_by: "app",
         accuracy: "1.0",
