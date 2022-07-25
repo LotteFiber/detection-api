@@ -420,7 +420,8 @@ router.post("/api/insertdatabyweb", upload.single("image"), (req, res) => {
 
 router.post("/api/insertdatabyapp", upload.single("image"), (req, res) => {
   console.log("req => ", req.body);
-  const { top, province, bottom, charge, image } = req.body;
+  const { top, province, bottom, charge, image, imageCard, imageEvent } =
+    req.body;
   if (!top || !province || !bottom) {
     return res.status(422).json({ error: "กรุณากรอกให้ครบ" });
   }
@@ -450,6 +451,8 @@ router.post("/api/insertdatabyapp", upload.single("image"), (req, res) => {
         licensepartthree: bottom,
         charge,
         path_image: image,
+        image_card: imageCard,
+        image_event: imageEvent,
         date_data: Date.now(),
         upload_by: "app",
         accuracy: "1.0",

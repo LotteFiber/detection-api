@@ -42,6 +42,14 @@ const dataSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  image_card: {
+    type: String,
+    required: false,
+  },
+  image_event: {
+    type: String,
+    required: false,
+  },
   upload_by: {
     type: String,
     required: true,

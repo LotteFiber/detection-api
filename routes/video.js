@@ -112,13 +112,77 @@ router.post(
   }
 );
 
-// upload - file - idcard - image;
-var storageCardImage = multer.diskStorage({
+var storageImageCard = multer.diskStorage({
   destination: function (req, file, callback) {
-    callback(null, "../HelmetDetection_V2ByImage/card_crop/");
+    callback(null, "./Images/");
   },
   filename: function (req, file, callback) {
     callback(null, "card_" + Date.now() + path.extname(file.originalname));
+  },
+});
+
+var uploadImageCard = multer({
+  storage: storageImageCard,
+  fileFilter: fileFilterImage,
+});
+
+router.post(
+  "/api/upload-image-card",
+  uploadImageCard.array("uploadedImagesCard", 10),
+  function (req, res, next) {
+    // console.log(req)
+    console.log("file12 => ", req.body.imageCard);
+    // const { filename } = req.files[0];
+    if (req.files) {
+      res.status(200).json({
+        message: "Success to upload.",
+        // uuid: filename.split(".")[0],
+      });
+    } else {
+      res.status(400).json({ message: "Upload image only." });
+    }
+  }
+);
+
+var storageImageEvent = multer.diskStorage({
+  destination: function (req, file, callback) {
+    callback(null, "./Images/");
+  },
+  filename: function (req, file, callback) {
+    callback(null, "event_" + Date.now() + path.extname(file.originalname));
+  },
+});
+
+var uploadImageEvent = multer({
+  storage: storageImageEvent,
+  fileFilter: fileFilterImage,
+});
+
+router.post(
+  "/api/upload-image-event",
+  uploadImageEvent.array("uploadedImageEvent", 10),
+  function (req, res, next) {
+    // console.log(req)
+    console.log("file13 => ", req.body.imageEvent);
+    // const { filename } = req.files[0];
+    if (req.files) {
+      res.status(200).json({
+        message: "Success to upload.",
+        // uuid: filename.split(".")[0],
+      });
+    } else {
+      res.status(400).json({ message: "Upload image only." });
+    }
+  }
+);
+
+// upload - file - idcard - image;
+var storageCardImage = multer.diskStorage({
+  destination: function (req, file, callback) {
+    callback(null, "./Images/");
+  },
+  filename: function (req, file, callback) {
+    callback(null, "event_" + Date.now() + path.extname(file.originalname));
   },
 });
 
