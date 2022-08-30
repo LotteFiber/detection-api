@@ -36,10 +36,12 @@ var upload = multer({
 
 var storageImage = multer.diskStorage({
   destination: function (req, file, callback) {
-    callback(null, "../HelmetDetection_V2ByImage/person_crop/");
+    callback(null, "./Images/");
+    // callback(null, "./Images/");
   },
   filename: function (req, file, callback) {
-    callback(null, "person_" + Date.now() + path.extname(file.originalname));
+    const name = "plate_" + Date.now() + path.extname(file.originalname);
+    callback(null, name);
   },
 });
 
@@ -66,8 +68,54 @@ router.post(
   "/api/upload-file-image",
   uploadImage.array("uploadedImages", 10),
   function (req, res, next) {
-    // console.log(req)
-    console.log("file11 => ", req.files);
+    //console.log(req)
+    console.log("file plate image => ", req.files);
+    const { filename } = req.files[0];
+    if (req.files) {
+      res.status(200).json({
+        message: "Success to upload.",
+        uuid: filename.split(".")[0],
+      });
+    } else {
+      res.status(400).json({ message: "Upload image only." });
+    }
+  }
+);
+
+// upload - file - idcard - image;
+var storageCardImage = multer.diskStorage({
+  destination: function (req, file, callback) {
+    callback(null, "./Images/");
+  },
+  filename: function (req, file, callback) {
+    callback(null, "card_" + Date.now() + path.extname(file.originalname));
+  },
+});
+
+var fileFilterImage = (req, file, cb) => {
+  console.log("test => ", file);
+  if (
+    file.mimetype == "image/jpeg" ||
+    file.mimetype == "image/png" ||
+    file.mimetype == "image/JPG" ||
+    file.mimetype == "application/octet-stream"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
+var uploadCardImage = multer({
+  storage: storageCardImage,
+  fileFilter: fileFilterImage,
+});
+
+router.post(
+  "/api/upload-file-card-image",
+  uploadCardImage.array("uploadedImageCard", 10),
+  function (req, res, next) {
+    console.log("file card image", req.file);
     const { filename } = req.files[0];
     if (req.files) {
       res.status(200).json({
@@ -85,7 +133,7 @@ var storageImagePlate = multer.diskStorage({
     callback(null, "./Images/");
   },
   filename: function (req, file, callback) {
-    callback(null, "person_" + Date.now() + path.extname(file.originalname));
+    callback(null, "img_" + Date.now() + path.extname(file.originalname));
   },
 });
 
@@ -99,12 +147,12 @@ router.post(
   uploadImagePlate.array("uploadedImages", 10),
   function (req, res, next) {
     // console.log(req)
-    console.log("file11 => ", req.body.image);
-    // const { filename } = req.files[0];
+    console.log("file11 => ", req.files);
+    const { filename } = req.files[0];
     if (req.files) {
       res.status(200).json({
         message: "Success to upload.",
-        // uuid: filename.split(".")[0],
+        uuid: filename,
       });
     } else {
       res.status(400).json({ message: "Upload image only." });
@@ -128,15 +176,15 @@ var uploadImageCard = multer({
 
 router.post(
   "/api/upload-image-card",
-  uploadImageCard.array("uploadedImagesCard", 10),
+  uploadImageCard.array("uploadedImageCard", 10),
   function (req, res, next) {
     // console.log(req)
-    console.log("file12 => ", req.body.imageCard);
-    // const { filename } = req.files[0];
+    console.log("file12 => ", req.files);
+    const { filename } = req.files[0];
     if (req.files) {
       res.status(200).json({
         message: "Success to upload.",
-        // uuid: filename.split(".")[0],
+        uuid: filename.split(".")[0],
       });
     } else {
       res.status(400).json({ message: "Upload image only." });
@@ -163,58 +211,12 @@ router.post(
   uploadImageEvent.array("uploadedImageEvent", 10),
   function (req, res, next) {
     // console.log(req)
-    console.log("file13 => ", req.body.imageEvent);
+    console.log("file13 => ", req.files);
     // const { filename } = req.files[0];
     if (req.files) {
       res.status(200).json({
         message: "Success to upload.",
         // uuid: filename.split(".")[0],
-      });
-    } else {
-      res.status(400).json({ message: "Upload image only." });
-    }
-  }
-);
-
-// upload - file - idcard - image;
-var storageCardImage = multer.diskStorage({
-  destination: function (req, file, callback) {
-    callback(null, "./Images/");
-  },
-  filename: function (req, file, callback) {
-    callback(null, "event_" + Date.now() + path.extname(file.originalname));
-  },
-});
-
-var fileFilterImage = (req, file, cb) => {
-  console.log("test => ", file);
-  if (
-    file.mimetype == "image/jpeg" ||
-    file.mimetype == "image/png" ||
-    file.mimetype == "image/JPG" ||
-    file.mimetype == "application/octet-stream"
-  ) {
-    cb(null, true);
-  } else {
-    cb(null, false);
-  }
-};
-
-var uploadCardImage = multer({
-  storage: storageCardImage,
-  fileFilter: fileFilterImage,
-});
-
-router.post(
-  "/api/upload-file-card-image",
-  uploadCardImage.array("uploadedCardImages", 10),
-  function (req, res, next) {
-    console.log(req.file);
-    const { filename } = req.files[0];
-    if (req.files) {
-      res.status(200).json({
-        message: "Success to upload.",
-        uuid: filename.split(".")[0],
       });
     } else {
       res.status(400).json({ message: "Upload image only." });
@@ -344,6 +346,7 @@ router.post("/api/video/startProgramCardImage", async (req, res) => {
   Status.findOneAndUpdate(id, status)
     .then((result) => {
       console.log("startProgram => ", result);
+      console.log("idjsonCard => ", uuid);
       const data = {
         message: "start program card",
         uuid: uuid,

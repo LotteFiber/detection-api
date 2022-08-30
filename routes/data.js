@@ -187,13 +187,13 @@ router.get("/api/data/uploadbyweb/:getdata", (req, res) => {
   res.sendFile(path.resolve(`./Images/${str}`));
 });
 
-router.get("/api/data/uploadbyapp/:getdata", (req, res) => {
-  var filename = req.params.getdata;
-  var str = filename.replace(/-/g, "/");
-  console.log("filename ", filename);
-  console.log("str ", str);
-  res.sendFile(path.resolve(`./Images/${str}`));
-});
+// router.get("/api/data/uploadbyapp/:getdata", (req, res) => {
+//   var filename = req.params.getdata;
+//   var str = filename.replace(/-/g, "/");
+//   console.log("filename ", filename);
+//   console.log("str ", str);
+//   res.sendFile(path.resolve(`./Images/${str}`));
+// });
 
 router.post("/api/insertdatabyvideo/", (req, res) => {
   console.log("req => ", req.body);
@@ -340,7 +340,7 @@ router.get("/api/show-data/:student_id", async (req, res) => {
 var storage = multer.diskStorage({
   destination: "./Images",
   filename: function (req, file, callback) {
-    callback(null, +Date.now() + path.extname(file.originalname));
+    callback(null, "plate_" + Date.now() + path.extname(file.originalname));
   },
 });
 
@@ -398,7 +398,7 @@ router.post("/api/insertdatabyweb", upload.single("image"), (req, res) => {
         licenseparttwo: province,
         licensepartthree: bottom,
         date_data: Date.now(),
-        path_image: req.file.path,
+        path_image: req.file.filename, // path_image: req.file.path,
         upload_by: "web",
         accuracy: "1.0",
         verify_status: false,
@@ -417,6 +417,68 @@ router.post("/api/insertdatabyweb", upload.single("image"), (req, res) => {
       return res.status(422).json({ error: "หาบุคคลผิดพลาด" });
     });
 });
+
+router.post(
+  "/api/insertdatabyappwoplate",
+  upload.single("uploadedImageCard"),
+  (req, res) => {
+    // console.log("img => ", req.file);
+    console.log("req app wo plate => ", req.body);
+    const {
+      first_name,
+      last_name,
+      student_id,
+      faculty,
+      charge,
+      imageCard,
+      imageEvent,
+    } = req.body;
+    Student.findOne({
+      first_name,
+      last_name,
+      student_id,
+      faculty,
+    })
+      .then((result) => {
+        var licensepartone = "-";
+        var licenseparttwo = "-";
+        var licensepartthree = "-";
+        if (result) {
+          licensepartone = result.licensepartone;
+          licenseparttwo = result.licenseparttwo;
+          licensepartthree = result.licensepartthree;
+        }
+        const data = new Data({
+          first_name,
+          last_name,
+          faculty,
+          student_id,
+          licensepartone,
+          licenseparttwo,
+          licensepartthree,
+          charge,
+          image_card: imageCard,
+          image_event: imageEvent,
+          date_data: Date.now(),
+          upload_by: "web",
+          accuracy: "1.0",
+        });
+        console.log("data => ", data);
+        data
+          .save()
+          .then((result) => {
+            res.json(result);
+          })
+          .catch((error) => {
+            res.status(422).json(error);
+          });
+      })
+      .catch((error) => {
+        console.log("หาบุคคลผิดพลาด");
+        return res.status(422).json({ error: "หาบุคคลผิดพลาด" });
+      });
+  }
+);
 
 router.post("/api/insertdatabyapp", upload.single("image"), (req, res) => {
   console.log("req => ", req.body);
@@ -454,7 +516,7 @@ router.post("/api/insertdatabyapp", upload.single("image"), (req, res) => {
         image_card: imageCard,
         image_event: imageEvent,
         date_data: Date.now(),
-        upload_by: "app",
+        upload_by: "web",
         accuracy: "1.0",
       });
       console.log("data => ", data);
@@ -506,7 +568,7 @@ router.put("/api/data/updatedatabyweb", upload.single("image"), (req, res) => {
           licenseparttwo: province,
           licensepartthree: bottom,
           date_data: Date.now(),
-          path_image: req.file.path,
+          path_image: req.file.filename, //path_image: req.file.path,
           upload_by: "web",
           accuracy: "1.0",
         };
