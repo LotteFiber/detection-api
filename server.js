@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 var bodyParser = require("body-parser");
@@ -5,10 +6,13 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const mongoose = require("mongoose");
 const path = require("path");
-const { MONGOURI } = require("./key");
-const { Server } = require("socket.io");
+const connectDB = require("./config/dbConn");
 var mqtt = require("mqtt");
 var client = mqtt.connect("mqtt://localhost:1883");
+
+console.log(process.env.NODE_ENV);
+
+connectDB();
 
 app.use(cors());
 app.use(express.static("public"));
@@ -16,7 +20,7 @@ app.use(express.static("public"));
 app.use(express.json());
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
-app.listen(PORT, () => console.log("Server connected to port", PORT));
+app.listen(PORT, () => console.log("Server running on port", PORT));
 
 require("./models/user");
 require("./models/student");
@@ -37,16 +41,12 @@ app.use(require("./routes/exportData"));
 app.use(require("./routes/filter"));
 app.use(require("./routes/importData"));
 
-mongoose.set("useNewUrlParser", true);
-mongoose.set("useFindAndModify", false);
-mongoose.set("useCreateIndex", true);
+// mongoose.set("useNewUrlParser", true);
+// mongoose.set("useFindAndModify", false);
+// mongoose.set("useCreateIndex", true);
 
-mongoose.connect(MONGOURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
 mongoose.connection.on("connected", () => {
-  console.log("connected to mongodb successfully");
+  console.log("Connected to MongoDB");
 });
 mongoose.connection.on("error", (error) => {
   console.log("error connection", error);

@@ -2,7 +2,7 @@
 
 # dependencies
 /node_modules
-/uploads
+/Images
 /.pnp
 .pnp.js
 
@@ -14,6 +14,7 @@
 
 # misc
 .DS_Store
+.env
 .env.local
 .env.development.local
 .env.test.local
@@ -22,5 +23,4 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-node_modules
-node_modules
+
