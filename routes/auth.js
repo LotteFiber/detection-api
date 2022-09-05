@@ -10,13 +10,24 @@ router.get("/api/", (req, res) => {
   res.json({ message: "this is auth" });
 });
 
-router.post("/api/signin", (req, res) => {
+router.post("/api/signin", async (req, res) => {
   console.log(req.body);
   const { user_name, pass_word } = req.body;
+
+  // const foundUser = await User.findOne({ user_name }).exec();
+  // console.log(foundUser);
+  // if (!foundUser) {
+  //   return res.status(422).json({ error: "Not found username" });
+  // }
+
+  // if (pass_word === foundUser.pass_word) {
+  //   const token = jwt.sign({ _id: foundUser.id }, SECRET);
+  //   return res.status(200).json({ token, foundUser });
+  // } else {
+  //   return res.status(422).json({ error: "Invalid username of password" });
+  // }
+
   User.findOne({ user_name: user_name }).then((savedUser) => {
-    if (!savedUser) {
-      return res.status(422).json({ error: "Not found username" });
-    }
     bcrypt
       .compare(pass_word, savedUser.pass_word)
       .then((doMatch) => {
