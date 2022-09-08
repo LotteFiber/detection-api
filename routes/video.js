@@ -363,22 +363,6 @@ router.post("/api/video/startProgramCardImage", async (req, res) => {
     });
 });
 
-router.post("/api/video/startProgramCheckCard", async (req, res) => {
-  const id = { _id: "62953eb1139d43e03c44c17e" };
-  const status = { status_program_ai: true };
-  Status.findOneAndUpdate(id, status)
-    .then((result) => {
-      console.log("startProgram => ", result);
-      const data = { message: "start program check card" };
-      client.publish("start_Program_Check_Card", JSON.stringify(data));
-      res.json({ message: "OK starting process detection (true)." });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(422).json({ message: "อัพเดทหรือหาผิดพลาด", error });
-    });
-});
-
 router.put("/api/video/updateStatusVideo", async (req, res) => {
   if (!req.body._id) {
     return res.status(422).json({ message: "error" });
