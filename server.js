@@ -30,8 +30,8 @@ require("./models/data");
 mongoose.model("User");
 mongoose.model("Student");
 mongoose.model("Video");
-mongoose.model("Data");
 const Status = mongoose.model("status_program");
+mongoose.model("Data");
 app.use(require("./routes/auth"));
 app.use(require("./routes/student"));
 app.use(require("./routes/video"));
@@ -53,7 +53,6 @@ mongoose.connection.on("error", (error) => {
 });
 
 client.on("connect", () => {
-  console.log("Connected to MQTT Broker");
   client.subscribe("program_status_update");
 });
 
