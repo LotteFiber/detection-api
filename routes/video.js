@@ -5,11 +5,9 @@ const Video = mongoose.model("Video");
 const path = require("path");
 const requiredLogin = require("../middleware/requiredLogin");
 const Status = mongoose.model("status_program");
+var multer = require("multer");
 var mqtt = require("mqtt");
 var client = mqtt.connect("mqtt://localhost:1883");
-
-var multer = require("multer");
-const { Console } = require("console");
 
 var storage = multer.diskStorage({
   destination: "./uploads/",
