@@ -12,6 +12,11 @@ var client = mqtt.connect("mqtt://localhost:1883");
 
 console.log(process.env.NODE_ENV);
 
+// mongoose.set("useNewUrlParser", true);
+// mongoose.set("useCreateIndex", true);
+// mongoose.set("useUnifiedTopology", true);
+// mongoose.set("useFindAndModify", false);
+
 connectDB();
 
 app.use(cors());
@@ -41,10 +46,6 @@ app.use(require("./routes/exportData"));
 app.use(require("./routes/filter"));
 app.use(require("./routes/importData"));
 
-// mongoose.set("useNewUrlParser", true);
-// mongoose.set("useFindAndModify", false);
-// mongoose.set("useCreateIndex", true);
-
 mongoose.connection.on("connected", () => {
   console.log("Connected to MongoDB");
 });
@@ -53,13 +54,14 @@ mongoose.connection.on("error", (error) => {
 });
 
 client.on("connect", () => {
+  console.log("Connected to MQTT Broker");
   client.subscribe("program_status_update");
 });
 
 client.on("message", (topic, message) => {
   console.log(topic, message.toString());
   if (topic === "program_status_update") {
-    const id = "606b1890857f026c4ec6ab9f";
+    const id = "608ea210bd9790f929ce9761";
     const status = { status_program_ai: false };
     Status.findByIdAndUpdate(id, status)
       .then((result) => {

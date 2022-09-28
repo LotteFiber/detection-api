@@ -9,7 +9,7 @@ const moment = require("moment");
 var multer = require("multer");
 
 router.get("/api/data/getalldata", async (req, res) => {
-  await Data.find()
+  Data.find()
     .sort({ date_data: -1 })
     .exec(function (err, result) {
       if (result) {
@@ -176,7 +176,8 @@ router.get("/api/data/:getdata", (req, res) => {
 router.get("/api/data/image/:getdata", (req, res) => {
   var filename = req.params.getdata;
   var str = filename.replace(/-/g, "/");
-  res.sendFile(path.resolve(`../HelmetDetection_V2ByImage/${str}`));
+  // res.sendFile(path.resolve(`../HelmetDetection_V2ByImage/${str}`));
+  res.sendFile(path.resolve(`../python/${str}`));
 });
 
 router.get("/api/data/uploadbyweb/:getdata", (req, res) => {
