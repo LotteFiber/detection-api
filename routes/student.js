@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const Student = mongoose.model("Student");
-const requiredLogin = require("../middleware/requiredLogin");
 
+// GET STUDENT
 router.get("/api/getdatastudent", async (req, res) => {
   await Student.find().then((result) => {
     if (result) {
@@ -14,6 +14,7 @@ router.get("/api/getdatastudent", async (req, res) => {
   });
 });
 
+// ADD STUDENT
 router.post("/api/insertstudent/", (req, res) => {
   const {
     first_name,
@@ -65,6 +66,7 @@ router.post("/api/insertstudent/", (req, res) => {
     });
 });
 
+// UPDATE STUDENT
 router.put("/api/updatestudent", async (req, res) => {
   const {
     id,
@@ -108,6 +110,7 @@ router.put("/api/updatestudent", async (req, res) => {
     });
 });
 
+// DELETE STUDENT
 router.delete("/api/deletestudent/", async (req, res) => {
   const { id } = req.body;
   if (!id) {

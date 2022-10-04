@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const Status = mongoose.model("status_program");
-const requiredLogin = require("../middleware/requiredLogin");
 
 router.get("/api/programstatus/insert", async (req, res) => {
   const status = new Status({

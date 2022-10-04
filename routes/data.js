@@ -8,8 +8,38 @@ const path = require("path");
 const moment = require("moment");
 var multer = require("multer");
 
-router.get("/api/data/getalldata", async (req, res) => {
-  Data.find()
+// CHECK DATA BY STUDENT ID
+router.post("/api/check-data", (req, res) => {
+  console.log("reqcheck => ", req.body);
+  const { student_id } = req.body;
+  if (!student_id) {
+    return res.status(422).json({ error: "กรุณากรอกข้อมูล" });
+  }
+  Data.find({
+    student_id: student_id,
+  })
+    .then((result) => {
+      if (result.length <= 0) {
+        return res
+          .status(422)
+          .json({ error: "ไม่พบข้อมูลผู้ไม่สวมหมวกกันน็อค" });
+      }
+      console.log(result);
+      res.json({
+        message: "พบข้อมูลผู้ไม่สวมหมวกกันน็อค",
+        amount: result.length,
+        data: result,
+      });
+    })
+    .catch((error) => {
+      return res.status(422).json({ error: "ไม่พบข้อมูล" });
+    });
+});
+
+// GET DETAIL DATAS STUDENT
+router.get("/api/show-data/:student_id", async (req, res) => {
+  const student_id = req.params.student_id;
+  Data.find({ student_id: student_id })
     .sort({ date_data: -1 })
     .exec(function (err, result) {
       if (result) {
@@ -20,20 +50,7 @@ router.get("/api/data/getalldata", async (req, res) => {
     });
 });
 
-router.delete("/api/deletedata/", async (req, res) => {
-  const { id } = req.body;
-  if (!id) {
-    return res.status(422).json({ error: "ไม่มีข้อมูล id ส่งกลับมา" });
-  }
-  await Data.findByIdAndDelete(id)
-    .then((result) => {
-      res.json(result);
-    })
-    .catch((error) => {
-      res.status(422).json({ error: "ลบผิดพลาด หรือ ไม่มีข้อมูลให้ลบ" });
-    });
-});
-
+// GET AMOUNT DATA
 router.get("/api/data/getAmountPerson", async (req, res) => {
   await Data.find().then((result) => {
     // month
@@ -167,167 +184,9 @@ router.get("/api/data/getAmountPerson", async (req, res) => {
   });
 });
 
-router.get("/api/data/:getdata", (req, res) => {
-  var filename = req.params.getdata;
-  var str = filename.replace(/-/g, "/");
-  res.sendFile(path.resolve(`../HelmetDetection_V2/${str}`));
-});
-
-router.get("/api/data/image/:getdata", (req, res) => {
-  var filename = req.params.getdata;
-  var str = filename.replace(/-/g, "/");
-  // res.sendFile(path.resolve(`../HelmetDetection_V2ByImage/${str}`));
-  res.sendFile(path.resolve(`../python/${str}`));
-});
-
-router.get("/api/data/uploadbyweb/:getdata", (req, res) => {
-  var filename = req.params.getdata;
-  var str = filename.replace(/-/g, "/");
-  console.log("filename ", filename);
-  console.log("str ", str);
-  res.sendFile(path.resolve(`./Images/${str}`));
-});
-
-// router.get("/api/data/uploadbyapp/:getdata", (req, res) => {
-//   var filename = req.params.getdata;
-//   var str = filename.replace(/-/g, "/");
-//   console.log("filename ", filename);
-//   console.log("str ", str);
-//   res.sendFile(path.resolve(`./Images/${str}`));
-// });
-
-router.post("/api/insertdatabyvideo/", (req, res) => {
-  console.log("req => ", req.body);
-  const { top, province, bottom, image, score } = req.body;
-  if (!top || !province || !bottom || !image || !score) {
-    return res.status(422).json({ error: "กรุณากรอกให้ครบ" });
-  }
-  Student.findOne({
-    licensepartone: top,
-    licenseparttwo: province,
-    licensepartthree: bottom,
-  })
-    .then((result) => {
-      var first_name = "-";
-      var last_name = "-";
-      var faculty = "-";
-      var student_id = "-";
-      if (result) {
-        first_name = result.first_name;
-        last_name = result.last_name;
-        faculty = result.faculty;
-        student_id = result.student_id;
-      }
-      const data = new Data({
-        first_name,
-        last_name,
-        faculty,
-        student_id,
-        licensepartone: top,
-        licenseparttwo: province,
-        licensepartthree: bottom,
-        date_data: Date.now(),
-        path_image: image,
-        upload_by: "video",
-        accuracy: score,
-        verify_status: false,
-      });
-      console.log("data => ", data);
-      data
-        .save()
-        .then((result) => {
-          res.json(result);
-        })
-        .catch((error) => {
-          res.status(422).json(error);
-        });
-    })
-    .catch((error) => {
-      return res.status(422).json({ error: "หาบุคคลผิดพลาด" });
-    });
-});
-
-router.post("/api/insertdatabyimage/", (req, res) => {
-  console.log("req => ", req.body);
-  const { top, province, bottom, image, score } = req.body;
-  if (!top || !province || !bottom || !image || !score) {
-    return res.status(422).json({ error: "กรุณากรอกให้ครบ" });
-  }
-  Student.findOne({
-    licensepartone: top,
-    licenseparttwo: province,
-    licensepartthree: bottom,
-  })
-    .then((result) => {
-      var first_name = "-";
-      var last_name = "-";
-      var faculty = "-";
-      var student_id = "-";
-      if (result) {
-        first_name = result.first_name;
-        last_name = result.last_name;
-        faculty = result.faculty;
-        student_id = result.student_id;
-      }
-      const data = new Data({
-        first_name,
-        last_name,
-        faculty,
-        student_id,
-        licensepartone: top,
-        licenseparttwo: province,
-        licensepartthree: bottom,
-        date_data: Date.now(),
-        path_image: image,
-        upload_by: "image",
-        accuracy: score,
-        verify_status: false,
-      });
-      console.log("data => ", data);
-      data
-        .save()
-        .then((result) => {
-          res.json(result);
-        })
-        .catch((error) => {
-          res.status(422).json(error);
-        });
-    })
-    .catch((error) => {
-      return res.status(422).json({ error: "หาบุคคลผิดพลาด" });
-    });
-});
-
-router.post("/api/check-data", (req, res) => {
-  console.log("reqcheck => ", req.body);
-  const { student_id } = req.body;
-  if (!student_id) {
-    return res.status(422).json({ error: "กรุณากรอกข้อมูล" });
-  }
-  Data.find({
-    student_id: student_id,
-  })
-    .then((result) => {
-      if (result.length <= 0) {
-        return res
-          .status(422)
-          .json({ error: "ไม่พบข้อมูลผู้ไม่สวมหมวกกันน็อค" });
-      }
-      console.log(result);
-      res.json({
-        message: "พบข้อมูลผู้ไม่สวมหมวกกันน็อค",
-        amount: result.length,
-        data: result,
-      });
-    })
-    .catch((error) => {
-      return res.status(422).json({ error: "ไม่พบข้อมูล" });
-    });
-});
-
-router.get("/api/show-data/:student_id", async (req, res) => {
-  const student_id = req.params.student_id;
-  Data.find({ student_id: student_id })
+// GET DATAS
+router.get("/api/data/getalldata", async (req, res) => {
+  await Data.find()
     .sort({ date_data: -1 })
     .exec(function (err, result) {
       if (result) {
@@ -338,6 +197,30 @@ router.get("/api/show-data/:student_id", async (req, res) => {
     });
 });
 
+// GET DATA BY APP
+router.get("/api/data/image/:getdata", (req, res) => {
+  var filename = req.params.getdata;
+  var str = filename.replace(/-/g, "/");
+  res.sendFile(path.resolve(`../program-ocr-plate-card/${str}`));
+});
+
+// GET DATA BY WEB
+router.get("/api/data/uploadbyweb/:getdata", (req, res) => {
+  var filename = req.params.getdata;
+  var str = filename.replace(/-/g, "/");
+  console.log("filename ", filename);
+  console.log("str ", str);
+  res.sendFile(path.resolve(`../program-detection-helmet/${str}`));
+});
+
+// GET DATA BY VIDEO
+router.get("/api/data/:getdata", (req, res) => {
+  var filename = req.params.getdata;
+  var str = filename.replace(/-/g, "/");
+  res.sendFile(path.resolve(`../program-detection-helmet/${str}`));
+});
+
+// HANDLE PLATE IMAGE STORAGE
 var storage = multer.diskStorage({
   destination: "./Images",
   filename: function (req, file, callback) {
@@ -367,11 +250,12 @@ var upload = multer({
   fileFilter: fileFilter,
 });
 
-router.post("/api/insertdatabyweb", upload.single("image"), (req, res) => {
-  console.log("img => ", req.file);
+// ADD DATA BY APP
+router.post("/api/insertdatabyapp", upload.single("image"), (req, res) => {
   console.log("req => ", req.body);
-  const { top, province, bottom } = req.body;
-  if (!top || !province || !bottom || !req.file) {
+  const { top, province, bottom, charge, image, imageCard, imageEvent } =
+    req.body;
+  if (!top || !province || !bottom) {
     return res.status(422).json({ error: "กรุณากรอกให้ครบ" });
   }
   Student.findOne({
@@ -398,11 +282,13 @@ router.post("/api/insertdatabyweb", upload.single("image"), (req, res) => {
         licensepartone: top,
         licenseparttwo: province,
         licensepartthree: bottom,
+        charge,
+        path_image: image,
+        image_card: imageCard,
+        image_event: imageEvent,
         date_data: Date.now(),
-        path_image: req.file.filename, // path_image: req.file.path,
         upload_by: "web",
         accuracy: "1.0",
-        verify_status: false,
       });
       console.log("data => ", data);
       data
@@ -419,6 +305,7 @@ router.post("/api/insertdatabyweb", upload.single("image"), (req, res) => {
     });
 });
 
+// ADD DATA BY APP WITH OUT PLATE
 router.post(
   "/api/insertdatabyappwoplate",
   upload.single("uploadedImageCard"),
@@ -481,11 +368,12 @@ router.post(
   }
 );
 
-router.post("/api/insertdatabyapp", upload.single("image"), (req, res) => {
+// ADD DATA BY WEB
+router.post("/api/insertdatabyweb", upload.single("image"), (req, res) => {
+  console.log("img => ", req.file);
   console.log("req => ", req.body);
-  const { top, province, bottom, charge, image, imageCard, imageEvent } =
-    req.body;
-  if (!top || !province || !bottom) {
+  const { top, province, bottom } = req.body;
+  if (!top || !province || !bottom || !req.file) {
     return res.status(422).json({ error: "กรุณากรอกให้ครบ" });
   }
   Student.findOne({
@@ -512,13 +400,11 @@ router.post("/api/insertdatabyapp", upload.single("image"), (req, res) => {
         licensepartone: top,
         licenseparttwo: province,
         licensepartthree: bottom,
-        charge,
-        path_image: image,
-        image_card: imageCard,
-        image_event: imageEvent,
         date_data: Date.now(),
+        path_image: req.file.filename, // path_image: req.file.path,
         upload_by: "web",
         accuracy: "1.0",
+        verify_status: false,
       });
       console.log("data => ", data);
       data
@@ -535,6 +421,111 @@ router.post("/api/insertdatabyapp", upload.single("image"), (req, res) => {
     });
 });
 
+// ADD DATA BY IMAGE ON WEB
+router.post("/api/insertdatabyimage/", (req, res) => {
+  console.log("req => ", req.body);
+  const { top, province, bottom, image, score } = req.body;
+  if (!top || !province || !bottom || !image || !score) {
+    return res.status(422).json({ error: "กรุณากรอกให้ครบ" });
+  }
+  Student.findOne({
+    licensepartone: top,
+    licenseparttwo: province,
+    licensepartthree: bottom,
+  })
+    .then((result) => {
+      var first_name = "-";
+      var last_name = "-";
+      var faculty = "-";
+      var student_id = "-";
+      if (result) {
+        first_name = result.first_name;
+        last_name = result.last_name;
+        faculty = result.faculty;
+        student_id = result.student_id;
+      }
+      const data = new Data({
+        first_name,
+        last_name,
+        faculty,
+        student_id,
+        licensepartone: top,
+        licenseparttwo: province,
+        licensepartthree: bottom,
+        date_data: Date.now(),
+        path_image: image,
+        upload_by: "image",
+        accuracy: score,
+        verify_status: false,
+      });
+      console.log("data => ", data);
+      data
+        .save()
+        .then((result) => {
+          res.json(result);
+        })
+        .catch((error) => {
+          res.status(422).json(error);
+        });
+    })
+    .catch((error) => {
+      return res.status(422).json({ error: "หาบุคคลผิดพลาด" });
+    });
+});
+
+// ADD DATA BY VIDEO
+router.post("/api/insertdatabyvideo/", (req, res) => {
+  console.log("req => ", req.body);
+  const { top, province, bottom, image, score } = req.body;
+  if (!top || !province || !bottom || !image || !score) {
+    return res.status(422).json({ error: "กรุณากรอกให้ครบ" });
+  }
+  Student.findOne({
+    licensepartone: top,
+    licenseparttwo: province,
+    licensepartthree: bottom,
+  })
+    .then((result) => {
+      var first_name = "-";
+      var last_name = "-";
+      var faculty = "-";
+      var student_id = "-";
+      if (result) {
+        first_name = result.first_name;
+        last_name = result.last_name;
+        faculty = result.faculty;
+        student_id = result.student_id;
+      }
+      const data = new Data({
+        first_name,
+        last_name,
+        faculty,
+        student_id,
+        licensepartone: top,
+        licenseparttwo: province,
+        licensepartthree: bottom,
+        date_data: Date.now(),
+        path_image: image,
+        upload_by: "video",
+        accuracy: score,
+        verify_status: false,
+      });
+      console.log("data => ", data);
+      data
+        .save()
+        .then((result) => {
+          res.json(result);
+        })
+        .catch((error) => {
+          res.status(422).json(error);
+        });
+    })
+    .catch((error) => {
+      return res.status(422).json({ error: "หาบุคคลผิดพลาด" });
+    });
+});
+
+// UPDATE DATA BY WEB
 router.put("/api/data/updatedatabyweb", upload.single("image"), (req, res) => {
   console.log("img => ", req.file);
   console.log("req => ", req.body);
@@ -603,6 +594,22 @@ router.put("/api/data/updatedatabyweb", upload.single("image"), (req, res) => {
     });
 });
 
+// DELETE DATA
+router.delete("/api/deletedata/", async (req, res) => {
+  const { id } = req.body;
+  if (!id) {
+    return res.status(422).json({ error: "ไม่มีข้อมูล id ส่งกลับมา" });
+  }
+  await Data.findByIdAndDelete(id)
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((error) => {
+      res.status(422).json({ error: "ลบผิดพลาด หรือ ไม่มีข้อมูลให้ลบ" });
+    });
+});
+
+// VERIFY DATA
 router.put("/api/dataverify", (req, res) => {
   const { _id } = req.body;
   if (!_id) {

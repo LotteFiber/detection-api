@@ -6,26 +6,15 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const SECRET = process.env.JWT_SECRET;
 
+// TEST API
 router.get("/api/", (req, res) => {
-  res.json({ message: "this is auth" });
+  res.json({ message: "Test API is worked" });
 });
 
+// SIGNIN
 router.post("/api/signin", async (req, res) => {
   console.log(req.body);
   const { user_name, pass_word } = req.body;
-
-  // const foundUser = await User.findOne({ user_name }).exec();
-  // console.log(foundUser);
-  // if (!foundUser) {
-  //   return res.status(422).json({ error: "Not found username" });
-  // }
-
-  // if (pass_word === foundUser.pass_word) {
-  //   const token = jwt.sign({ _id: foundUser.id }, SECRET);
-  //   return res.status(200).json({ token, foundUser });
-  // } else {
-  //   return res.status(422).json({ error: "Invalid username of password" });
-  // }
 
   User.findOne({ user_name: user_name }).then((savedUser) => {
     bcrypt
@@ -48,11 +37,12 @@ router.post("/api/signin", async (req, res) => {
   });
 });
 
+// SIGNUP
 router.post("/api/signup", (req, res) => {
   console.log(req.body);
   const { user_name, pass_word } = req.body;
   if (!user_name || !pass_word) {
-    return res.status(422).json({ error: "please add all field" });
+    return res.status(422).json({ error: "Please add all field" });
   }
   User.findOne({ user_name: user_name })
     .then((savedUser) => {
@@ -68,7 +58,7 @@ router.post("/api/signup", (req, res) => {
         user
           .save()
           .then((user) => {
-            res.json({ message: "saved successfull" });
+            res.json({ message: "Saved successfull" });
           })
           .catch((response) => {
             console.log(response);
@@ -80,6 +70,7 @@ router.post("/api/signup", (req, res) => {
     });
 });
 
+// GET USERS
 router.get("/api/getusers", async (req, res) => {
   const userList = await User.find().select("-pass_word");
 
@@ -89,6 +80,7 @@ router.get("/api/getusers", async (req, res) => {
   res.send(userList);
 });
 
+// GET USER BY ID
 router.get("/api/getuser/:id", async (req, res) => {
   const user = await User.findById(req.params.id).select("-pass_word");
 
@@ -100,6 +92,7 @@ router.get("/api/getuser/:id", async (req, res) => {
   res.status(200).send(user);
 });
 
+// UPDATE USER
 router.put("/api/user/:id", async (req, res) => {
   const userExist = await User.findById(req.params.id);
   let newPassword;
@@ -118,22 +111,23 @@ router.put("/api/user/:id", async (req, res) => {
     { new: true }
   );
 
-  if (!user) return res.status(400).send("the user cannot be created!");
+  if (!user) return res.status(400).send("The user cannot be created!");
 
   res.send(user);
 });
 
+// DELETE USER
 router.delete("/api/user/:id", (req, res) => {
   User.findByIdAndRemove(req.params.id)
     .then((user) => {
       if (user) {
         return res
           .status(200)
-          .json({ success: true, message: "the user is deleted!" });
+          .json({ success: true, message: "The user is deleted!" });
       } else {
         return res
           .status(404)
-          .json({ success: false, message: "user not found!" });
+          .json({ success: false, message: "User not found!" });
       }
     })
     .catch((err) => {

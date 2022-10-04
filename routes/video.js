@@ -7,37 +7,47 @@ const requiredLogin = require("../middleware/requiredLogin");
 const Status = mongoose.model("status_program");
 var mqtt = require("mqtt");
 var client = mqtt.connect("mqtt://localhost:1883");
-
 var multer = require("multer");
-const { Console } = require("console");
 
-var storage = multer.diskStorage({
-  destination: "./uploads/",
-  filename: function (req, file, cb) {
-    console.log("test1 => ", file);
-    console.log(Date.now());
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
-var fileFilter = (req, file, cb) => {
-  console.log("test => ", file);
-  if (file.mimetype == "video/mp4") {
-    cb(null, true);
-  } else {
-    cb(null, false);
-  }
-};
-
-var upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-});
-
+// =================================== APP ===================================//
+// HANDLE UPLOAD BY IMAGE ETC
 var storageImage = multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, "./Images/");
-    // callback(null, "./Images/");
+  },
+  filename: function (req, file, callback) {
+    callback(null, "img_" + Date.now() + path.extname(file.originalname));
+  },
+});
+
+var uploadImage = multer({
+  storage: storageImage,
+  fileFilter: fileFilterImage,
+});
+
+// UPLOAD ETC IMAGE
+router.post(
+  "/api/upload-image",
+  uploadImage.array("uploadedImages", 10),
+  function (req, res, next) {
+    // console.log(req)
+    console.log("file11 => ", req.files);
+    const { filename } = req.files[0];
+    if (req.files) {
+      res.status(200).json({
+        message: "Success to upload.",
+        uuid: filename,
+      });
+    } else {
+      res.status(400).json({ message: "Upload image only." });
+    }
+  }
+);
+
+// HANDLE UPLOAD BY APP PLATE IMAGE
+var storagePlateImage = multer.diskStorage({
+  destination: function (req, file, callback) {
+    callback(null, "./Images/");
   },
   filename: function (req, file, callback) {
     const name = "plate_" + Date.now() + path.extname(file.originalname);
@@ -59,14 +69,15 @@ var fileFilterImage = (req, file, cb) => {
   }
 };
 
-var uploadImage = multer({
-  storage: storageImage,
+var uploadPlateImage = multer({
+  storage: storagePlateImage,
   fileFilter: fileFilterImage,
 });
 
+// UPLOAD PLATE IMAGE
 router.post(
-  "/api/upload-file-image",
-  uploadImage.array("uploadedImages", 10),
+  "/api/upload-plate",
+  uploadPlateImage.array("uploadedImages", 10),
   function (req, res, next) {
     //console.log(req)
     console.log("file plate image => ", req.files);
@@ -82,7 +93,7 @@ router.post(
   }
 );
 
-// upload - file - idcard - image;
+// HANDLE UPLOAD BY APP CARD IMAGE
 var storageCardImage = multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, "./Images/");
@@ -111,8 +122,9 @@ var uploadCardImage = multer({
   fileFilter: fileFilterImage,
 });
 
+// UPLOAD CARD IMAGE
 router.post(
-  "/api/upload-file-card-image",
+  "/api/upload-card",
   uploadCardImage.array("uploadedImageCard", 10),
   function (req, res, next) {
     console.log("file card image", req.file);
@@ -128,102 +140,99 @@ router.post(
   }
 );
 
-var storageImagePlate = multer.diskStorage({
-  destination: function (req, file, callback) {
-    callback(null, "./Images/");
-  },
-  filename: function (req, file, callback) {
-    callback(null, "img_" + Date.now() + path.extname(file.originalname));
+// START PROGRAM PLATE
+router.post("/api/video/start-program-plate", async (req, res) => {
+  const id = { _id: "608ea210bd9790f929ce9761" };
+  const status = { status_program_ai: true };
+  const { uuid } = req.body;
+  Status.findOneAndUpdate(id, status)
+    .then((result) => {
+      console.log("startProgramPlate => ", result);
+      console.log("idjsonPlate => ", uuid);
+      const data = {
+        message: "start program plate",
+        uuid: uuid,
+      };
+      client.publish(
+        "start_Program_Plate_Detection_Image",
+        JSON.stringify(data)
+      );
+      res.json({ message: "OK starting process detection (true)." });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(422).json({ message: "อัพเดทหรือหาผิดพลาด", error });
+    });
+});
+
+// START PROGRAM CARD
+router.post("/api/video/start-program-card", async (req, res) => {
+  const id = { _id: "62953eb1139d43e03c44c17e" };
+  const status = { status_program_ai: true };
+  const { uuid } = req.body;
+  Status.findOneAndUpdate(id, status)
+    .then((result) => {
+      console.log("startProgramCard => ", result);
+      console.log("idjsonCard => ", uuid);
+      const data = {
+        message: "start program card",
+        uuid: uuid,
+      };
+      client.publish(
+        "start_Program_Card_Detection_Image",
+        JSON.stringify(data)
+      );
+      res.json({ message: "OK starting process detection (true)." });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(422).json({ message: "อัพเดทหรือหาผิดพลาด", error });
+    });
+});
+
+// ================================== VIDEO ==================================//
+// HANDLE UPLOAD BY WEB
+var storage = multer.diskStorage({
+  destination: "./uploads/",
+  filename: function (req, file, cb) {
+    console.log("test1 => ", file);
+    console.log(Date.now());
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 
-var uploadImagePlate = multer({
-  storage: storageImagePlate,
-  fileFilter: fileFilterImage,
-});
-
-router.post(
-  "/api/upload-image-plate",
-  uploadImagePlate.array("uploadedImages", 10),
-  function (req, res, next) {
-    // console.log(req)
-    console.log("file11 => ", req.files);
-    const { filename } = req.files[0];
-    if (req.files) {
-      res.status(200).json({
-        message: "Success to upload.",
-        uuid: filename,
-      });
-    } else {
-      res.status(400).json({ message: "Upload image only." });
-    }
+var fileFilter = (req, file, cb) => {
+  console.log("test => ", file);
+  if (file.mimetype == "video/mp4") {
+    cb(null, true);
+  } else {
+    cb(null, false);
   }
-);
+};
 
-var storageImageCard = multer.diskStorage({
-  destination: function (req, file, callback) {
-    callback(null, "./Images/");
-  },
-  filename: function (req, file, callback) {
-    callback(null, "card_" + Date.now() + path.extname(file.originalname));
-  },
+var upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
 });
 
-var uploadImageCard = multer({
-  storage: storageImageCard,
-  fileFilter: fileFilterImage,
-});
-
-router.post(
-  "/api/upload-image-card",
-  uploadImageCard.array("uploadedImageCard", 10),
-  function (req, res, next) {
-    // console.log(req)
-    console.log("file12 => ", req.files);
-    const { filename } = req.files[0];
-    if (req.files) {
-      res.status(200).json({
-        message: "Success to upload.",
-        uuid: filename.split(".")[0],
-      });
+// GET VIDEOS
+router.get("/api/video/getAll", async (req, res) => {
+  await Video.find().then((result) => {
+    if (result) {
+      res.json(result);
     } else {
-      res.status(400).json({ message: "Upload image only." });
+      res.status(422).json({ message: "No data in db." });
     }
-  }
-);
-
-var storageImageEvent = multer.diskStorage({
-  destination: function (req, file, callback) {
-    callback(null, "./Images/");
-  },
-  filename: function (req, file, callback) {
-    callback(null, "event_" + Date.now() + path.extname(file.originalname));
-  },
+  });
 });
 
-var uploadImageEvent = multer({
-  storage: storageImageEvent,
-  fileFilter: fileFilterImage,
+// GET DETAILS VIDEO
+router.get("/api/video/:getvideo", (req, res) => {
+  var filename = req.params.getvideo;
+  res.sendFile(path.resolve(`./uploads/${filename}`));
 });
 
-router.post(
-  "/api/upload-image-event",
-  uploadImageEvent.array("uploadedImageEvent", 10),
-  function (req, res, next) {
-    // console.log(req)
-    console.log("file13 => ", req.files);
-    // const { filename } = req.files[0];
-    if (req.files) {
-      res.status(200).json({
-        message: "Success to upload.",
-        // uuid: filename.split(".")[0],
-      });
-    } else {
-      res.status(400).json({ message: "Upload image only." });
-    }
-  }
-);
-
+// UPLOAD VIDEO
 router.post(
   "/api/upload-file",
   requiredLogin,
@@ -259,35 +268,7 @@ router.post(
   }
 );
 
-router.get("/api/video/getAll", async (req, res) => {
-  await Video.find().then((result) => {
-    if (result) {
-      res.json(result);
-    } else {
-      res.status(422).json({ message: "No data in db." });
-    }
-  });
-});
-
-router.delete("/api/video/delete", requiredLogin, async (req, res) => {
-  const { id } = req.body;
-  if (!id) {
-    return res.status(422).json({ error: "Need id for delete." });
-  }
-  await Video.findByIdAndDelete(id)
-    .then((result) => {
-      res.json({ result: result, message: "delete success." });
-    })
-    .catch((error) => {
-      res.status(422).json({ error: "delete error", data: error });
-    });
-});
-
-router.get("/api/video/:getvideo", (req, res) => {
-  var filename = req.params.getvideo;
-  res.sendFile(path.resolve(`./uploads/${filename}`));
-});
-
+// START PROGRAM VIDEO
 router.post("/api/video/startProgram", async (req, res) => {
   console.log("RES => ", req.body.video_file);
   if (!req.body.video_file || !req.body._id) {
@@ -316,20 +297,13 @@ router.post("/api/video/startProgram", async (req, res) => {
     });
 });
 
-router.post("/api/video/startProgramImage", async (req, res) => {
+// UPDATE STATUS IMAGE
+router.put("/api/video/updateStatusImage", async (req, res) => {
   const id = { _id: "608ea210bd9790f929ce9761" };
-  const status = { status_program_ai: true };
-  //const uuid = Date.now() + Math.floor(Math.random()*10);
-  const { uuid } = req.body;
+  const status = { status_program_ai: false };
   Status.findOneAndUpdate(id, status)
     .then((result) => {
-      console.log("startProgram => ", result);
-      console.log("idjson => ", uuid);
-      const data = {
-        message: "start program",
-        uuid: uuid,
-      };
-      client.publish("start_Program_Detection_Image", JSON.stringify(data));
+      console.log(result);
       res.json({ message: "OK starting process detection (true)." });
     })
     .catch((error) => {
@@ -338,31 +312,7 @@ router.post("/api/video/startProgramImage", async (req, res) => {
     });
 });
 
-router.post("/api/video/startProgramCardImage", async (req, res) => {
-  const id = { _id: "62953eb1139d43e03c44c17e" };
-  const status = { status_program_ai: true };
-  //const uuid = Date.now() + Math.floor(Math.random()*10);
-  const { uuid } = req.body;
-  Status.findOneAndUpdate(id, status)
-    .then((result) => {
-      console.log("startProgram => ", result);
-      console.log("idjsonCard => ", uuid);
-      const data = {
-        message: "start program card",
-        uuid: uuid,
-      };
-      client.publish(
-        "start_Program_Card_Detection_Image",
-        JSON.stringify(data)
-      );
-      res.json({ message: "OK starting process detection (true)." });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(422).json({ message: "อัพเดทหรือหาผิดพลาด", error });
-    });
-});
-
+// UPDATE STATUS VIDEO
 router.put("/api/video/updateStatusVideo", async (req, res) => {
   if (!req.body._id) {
     return res.status(422).json({ message: "error" });
@@ -388,17 +338,18 @@ router.put("/api/video/updateStatusVideo", async (req, res) => {
     });
 });
 
-router.put("/api/video/updateStatusImage", async (req, res) => {
-  const id = { _id: "608ea210bd9790f929ce9761" };
-  const status = { status_program_ai: false };
-  Status.findOneAndUpdate(id, status)
+// DELETE VIDEO
+router.delete("/api/video/delete", requiredLogin, async (req, res) => {
+  const { id } = req.body;
+  if (!id) {
+    return res.status(422).json({ error: "Need id for delete." });
+  }
+  await Video.findByIdAndDelete(id)
     .then((result) => {
-      console.log(result);
-      res.json({ message: "OK starting process detection (true)." });
+      res.json({ result: result, message: "delete success." });
     })
     .catch((error) => {
-      console.log(error);
-      res.status(422).json({ message: "อัพเดทหรือหาผิดพลาด", error });
+      res.status(422).json({ error: "delete error", data: error });
     });
 });
 
