@@ -210,7 +210,7 @@ router.get("/api/data/uploadbyweb/:getdata", (req, res) => {
   var str = filename.replace(/-/g, "/");
   console.log("filename ", filename);
   console.log("str ", str);
-  res.sendFile(path.resolve(`../program-detection-helmet/${str}`));
+  res.sendFile(path.resolve(`./Images/${str}`));
 });
 
 // GET DATA BY VIDEO
